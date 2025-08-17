@@ -20,7 +20,6 @@ app.get('/highscores', (req, res) => {
     res.json(data);
 });
 
-// --- RUTA POST para guardar un nuevo score ---
 app.post('/submit', (req, res) => {
     const { player, score, time } = req.body;
     if (!player || typeof score !== 'number') return res.status(400).json({ error: 'Datos inválidos' });
@@ -28,13 +27,25 @@ app.post('/submit', (req, res) => {
     let data = [];
     if (fs.existsSync(SCORE_FILE)) {
         try {
+            // Leer los puntajes actuales
             data = JSON.parse(fs.readFileSync(SCORE_FILE, 'utf8'));
+
+            // Hacer backup antes de sobrescribir
+            const backupFile = SCORE_FILE.replace('.json', `_backup_${Date.now()}.json`);
+            fs.copyFileSync(SCORE_FILE, backupFile);
+
         } catch {
             data = [];
         }
     }
 
+    // Agregar el nuevo score
     data.push({ player, score, time });
+
+    // Ordenar de mayor a menor
+    data.sort((a, b) => b.score - a.score);
+
+    // Guardar todos los puntajes (no eliminamos antiguos)
     fs.writeFileSync(SCORE_FILE, JSON.stringify(data, null, 2));
 
     res.json({ ok: true });
