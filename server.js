@@ -16,24 +16,25 @@ const SCORE_FILE = path.join(__dirname, 'scores.json');
 // --- RUTA GET para highscores ---
 app.get('/highscores', (req, res) => {
     if (!fs.existsSync(SCORE_FILE)) return res.json([]);
-    const data = JSON.parse(fs.readFileSync(SCORE_FILE, 'utf8'));
-    res.json(data);
+    let data = JSON.parse(fs.readFileSync(SCORE_FILE, 'utf8'));
+
+    // Ordenar de mayor a menor y quedarnos con los 10 primeros
+    data.sort((a, b) => b.score - a.score);
+    const top10 = data.slice(0, 10);
+
+    res.json(top10);
 });
 
 app.post('/submit', (req, res) => {
     const { player, score, time } = req.body;
-    if (!player || typeof score !== 'number') return res.status(400).json({ error: 'Datos inválidos' });
+    if (!player || typeof score !== 'number') {
+        return res.status(400).json({ error: 'Datos inválidos' });
+    }
 
     let data = [];
     if (fs.existsSync(SCORE_FILE)) {
         try {
-            // Leer los puntajes actuales
             data = JSON.parse(fs.readFileSync(SCORE_FILE, 'utf8'));
-
-            // Hacer backup antes de sobrescribir
-            const backupFile = SCORE_FILE.replace('.json', `_backup_${Date.now()}.json`);
-            fs.copyFileSync(SCORE_FILE, backupFile);
-
         } catch {
             data = [];
         }
@@ -42,10 +43,11 @@ app.post('/submit', (req, res) => {
     // Agregar el nuevo score
     data.push({ player, score, time });
 
-    // Ordenar de mayor a menor
+    // Ordenar y dejar solo los 10 mejores
     data.sort((a, b) => b.score - a.score);
+    data = data.slice(0, 10);
 
-    // Guardar todos los puntajes (no eliminamos antiguos)
+    // Guardar el top 10 actualizado en el archivo
     fs.writeFileSync(SCORE_FILE, JSON.stringify(data, null, 2));
 
     res.json({ ok: true });
@@ -58,17 +60,4 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`SCARGAME - ACTIVED en http://localhost:${PORT}`);
-});
-
-app.get('/highscores', (req, res) => {
-    if (!fs.existsSync(SCORE_FILE)) return res.json([]);
-    let data = JSON.parse(fs.readFileSync(SCORE_FILE, 'utf8'));
-
-    // Ordenar de mayor a menor por score
-    data.sort((a, b) => b.score - a.score);
-
-    // Tomar solo los primeros 10
-    const top10 = data.slice(0, 10);
-
-    res.json(top10);
 });
