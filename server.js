@@ -48,3 +48,16 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`SCARGAME - ACTIVED en http://localhost:${PORT}`);
 });
+
+app.get('/highscores', (req, res) => {
+    if (!fs.existsSync(SCORE_FILE)) return res.json([]);
+    let data = JSON.parse(fs.readFileSync(SCORE_FILE, 'utf8'));
+
+    // Ordenar de mayor a menor por score
+    data.sort((a, b) => b.score - a.score);
+
+    // Tomar solo los primeros 10
+    const top10 = data.slice(0, 10);
+
+    res.json(top10);
+});
