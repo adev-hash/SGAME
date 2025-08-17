@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScarGAME Highscores</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      font-family: 'Press Start 2P', cursive;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 20px;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 500px;
+      font-size: 0.7rem;
+    }
+
+    th, td {
+      border: 2px solid #eeefee;
+      padding: 8px;
+      text-align: center;
+      word-wrap: break-word;
+    }
+
+    th {
+      background: #111;
+    }
+
+    td {
+      background: #000;
+    }
+
+    tr:nth-child(even) td {
+      background: #111;
+    }
+
+    button {
+      font-family: 'Press Start 2P', cursive;
+      background-color: black;
+      color: white;
+      border: 2px solid white;
+      padding: 10px 20px;
+      font-size: 0.7rem;
+      margin-top: 20px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: white;
+      color: black;
+    }
+
+    /* --- Responsividad --- */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 16px;
+      }
+
+      table {
+        font-size: 0.55rem;
+      }
+
+      th, td {
+        padding: 6px;
+      }
+
+      button {
+        font-size: 0.6rem;
+        padding: 8px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>SCARGAME HIGHSCORES</h1>
+  <table id="highscores">
+    <thead>
+      <tr>
+        <th>RANK</th>
+        <th>PLAYER</th>
+        <th>SCORE</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Datos se cargarán con JS -->
+    </tbody>
+  </table>
+
+  <script>
+    async function loadHighscores() {
+      try {
+        const res = await fetch('/highscores');
+        if (!res.ok) throw new Error('No se pudo cargar los highscores');
+        const data = await res.json();
+        const tbody = document.querySelector('#highscores tbody');
+        tbody.innerHTML = '';
+        data.sort((a,b)=>b.score-a.score); // ordenar descendente
+        data.forEach((entry,index)=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${index+1}</td><td>${entry.player}</td><td>${entry.score}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch(err){
+        console.error(err);
+      }
+    }
+
+    loadHighscores();
+    setInterval(loadHighscores, 5000); // refresca cada 5s
+  </script>
+
+  <!-- Botón para regresar -->
+  <button onclick="window.location.href='SCARGAME.html'">⬅ BACK</button>
+</body>
+</html>

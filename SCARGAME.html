@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCARGAME</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="menu-container">
+        <h1 class="game-title">SCARGAME</h1>
+        
+        <!-- Texto de inicio -->
+        <p id="start-text">PRESS ANY KEY</p>
+
+        <!-- Menú de dificultad -->
+        <div id="difficulty-menu" class="hidden">
+            <label for="difficulty">MODE:</label>
+            <select id="difficulty">
+                <option value="easy">EASY</option>
+                <option value="medium">MEDIUM</option>
+                <option value="hard">HARD</option>
+            </select>
+            <!-- Nombre del jugador -->
+            
+            <div class="player-name-container">
+                <label for="player-name">NAME:</label>
+                <input type="text" id="player-name" maxlength="20" placeholder="Jugador...">
+                 <p id="name-warning" class="warning hidden">⚠ Debes ingresar tu nombre</p>
+            </div>
+
+            <!-- GIF del conejo -->
+            <div class="bunny-gif">
+                <img src="Gifs/points.gif" alt="Conejito">
+            </div>
+
+            <button id="play-btn">PLAY</button>
+            <button id="highscores-btn">HIGH SCORES</button>
+
+            <div class="version-text">© Version 1.0</div>
+        </div>
+
+    </div>
+
+    <!-- Música y efectos -->
+<audio id="start-sound" src="Sounds/newrecord.wav"></audio>
+<audio id="select-sound" src="Sounds/point.wav"></audio>
+<audio id="type-sound" src="Sounds/bit2.wav"></audio>
+<audio id="warning-sound" src="Sounds/bit.wav"></audio>
+
+
+
+<script src="game.js"></script>
+</body>
+</html>

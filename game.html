@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GAME</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    :root{ --ground-h: 70px; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: black;
+      font-family: 'Press Start 2P', cursive;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #game-container {
+      position: relative;
+      width: 480px;
+      height: 640px;
+      border: 3px solid #eeeeee;
+      background: #111;
+      overflow: hidden;
+      user-select: none;
+    }
+    #game-canvas {
+      display: block;
+      background: black;
+      image-rendering: pixelated;
+      width: 100%;
+      height: 100%;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 12px;
+      user-select: none;
+      z-index: 10;
+      text-shadow: 0 0 4px #003300;
+    }
+    #bunny {
+      position: absolute;
+      bottom: var(--ground-h); /* justo sobre el suelo */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      pointer-events: none;
+      user-select: none;
+      z-index: 10;
+      transition: filter 0.2s ease;
+    }
+
+    /* Overlay Game Over */
+    .overlay {
+      position:absolute; inset:0;
+      background: rgba(0,0,0,0.85);
+      color:#fff; z-index: 20;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap: 18px; text-align:center;
+      padding: 20px;
+    }
+    .overlay h2{ margin:0; font-size:22px; letter-spacing:2px; }
+    .overlay p { margin:0; font-size:12px; opacity:0.9; }
+    .choices { display:flex; gap:14px; margin-top:8px; }
+    .btn {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 12px;
+      border:2px solid #fff; background: transparent; color:#fff;
+      padding:8px 12px; cursor:pointer;
+    }
+    .btn:hover{ background:#fff; color:#000; }
+
+    /* Explosiones DOM */
+    .fx-explosion {
+      position:absolute; width: 96px; height:96px;
+      pointer-events:none; z-index: 15;
+      transform: translate(-50%, -50%);
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas" width="480" height="640"></canvas>
+
+    <div id="ui">
+      <div>Tiempo: <span id="time">0</span>s</div>
+      <div>Manzanas: <span id="score">0</span></div>
+      <div>Vidas: <span id="lives">5</span></div>
+    </div>
+
+    <img id="bunny" src="Gifs/Scar.gif" alt="Conejito" />
+
+    <!-- Músicas -->
+    <audio id="bg-music-easy" src="Sounds/Soundtrack.wav" loop></audio>
+    <audio id="bg-music-medium" src="Sounds/soundtrack2.wav" loop></audio>
+    <audio id="bg-music-hard" src="Sounds/soundtrack2.wav" loop></audio>
+    <audio id="bg-music-gameover" src="Sounds/gameover.wav"></audio>
+    
+
+    <!-- Sonidos -->
+    <audio id="sound-apple" src="Sounds/point.wav"></audio>
+    <audio id="sound-bone" src="Sounds/damage.wav"></audio>
+    <audio id="sound-bomb" src="Sounds/bomba.wav"></audio>
+    <audio id="sound-banana" src="Sounds/newrecord1.wav"></audio>
+    <audio id="sound-life" src="Sounds/newrecord1.wav"></audio>
+    <audio id="sound-chile" src="Sounds/bomba.wav"></audio>
+  </div>
+
+  <script>
+    // --- Parámetros desde el menú ---
+    const params = new URLSearchParams(window.location.search);
+    const playerName = params.get("player") || "Jugador";
+    const difficulty = (params.get("diff") || "easy").toLowerCase(); // easy | medium | hard
+
+    // --- Canvas y UI ---
+    const container = document.getElementById("game-container");
+    const canvas = document.getElementById("game-canvas");
+    const ctx = canvas.getContext("2d");
+    const timeDisplay  = document.getElementById("time");
+    const scoreDisplay = document.getElementById("score");
+    const livesDisplay = document.getElementById("lives");
+    const bunny = document.getElementById("bunny");
+
+    // --- Música / sonidos ---
+    const bgTracks = {
+      easy:   document.getElementById("bg-music-easy"),
+      medium: document.getElementById("bg-music-medium"),
+      hard:   document.getElementById("bg-music-hard"),
+    };
+    const gameOverMusic = document.getElementById("bg-music-gameover");
+    const bgMusic = bgTracks[difficulty] || bgTracks.easy;
+    const sApple  = document.getElementById("sound-apple");
+    const sBone   = document.getElementById("sound-bone");
+    const sBomb   = document.getElementById("sound-bomb");
+    const sBanana = document.getElementById("sound-banana");
+    const sLife   = document.getElementById("sound-life");
+    const sChile  = document.getElementById("sound-chile");
+    const notifications = []; // {text, x, y, timer}
+
+
+
+
+    function startMusic() {
+      bgMusic.volume = 0.35;
+      bgMusic.play().catch(()=>{});
+      window.removeEventListener('click', startMusic);
+      window.removeEventListener('touchstart', startMusic);
+    }
+    window.addEventListener('click', startMusic);
+    window.addEventListener('touchstart', startMusic);
+
+    // --- Configuración por dificultad ---
+    const DIFF_CFG = {
+      easy:   { fallSpeed: 2.2, spawnMs: 1200, harmfulWeights: {bone: 22, bomb: 0,  chile: 0} },
+      medium: { fallSpeed: 3.6, spawnMs: 950,  harmfulWeights: {bone: 26, bomb: 8,  chile: 0} },
+      hard:   { fallSpeed: 5.2, spawnMs: 800,  harmfulWeights: {bone: 28, bomb: 10, chile: 6} }
+    };
+    const CFG = DIFF_CFG[difficulty] || DIFF_CFG.easy;
+
+    // --- Estado del juego ---
+    let gameState = "running"; // running | gameover
+    let score = 0;
+    let lives = 5;
+    let timeElapsed = 0;
+
+    const OBJECT_SIZE = 60;
+    const GROUND_H = 70;
+
+    // Conejo y controles
+    const bunnyWidth = 80, bunnyHeight = 80;
+    let bunnyX = canvas.width / 2;
+    let bunnyY = canvas.height - GROUND_H - bunnyHeight; // top del conejo en coords canvas
+    const bunnyNormalSrc = "Gifs/Scar.gif";
+    const bunnySadSrc = "Gifs/sad.gif";
+
+    const BASE_PLAYER_SPEED = 5;
+    let playerSpeed = BASE_PLAYER_SPEED;
+    let speedBoostUntil = 0;
+
+    // Caída y spawns
+    let baseFallSpeed = CFG.fallSpeed;
+    let spawnInterval = CFG.spawnMs;
+    let spawnTimer = 0;
+    let lastTime = null;
+
+    // --- Imágenes ---
+    const img = {};
+    function loadImg(name, src){ const i=new Image(); i.src=src; img[name]=i; }
+    loadImg("apple", "Fruits/Apple.png");
+    loadImg("bone", "Damage/bone.png");
+    loadImg("banana", "Fruits/banana.png");
+    loadImg("guava", "Fruits/guayaba.png");
+    loadImg("orange", "Fruits/orange.png");
+    loadImg("bomb", "Damage/bomba.png");          // bomba caída = PNG
+    loadImg("chile", "Fruits/chile.png");
+
+    // --- Controles ---
+    const keys = {};
+    window.addEventListener("keydown", e => { keys[e.key.toLowerCase()] = true; });
+    window.addEventListener("keyup",   e => { keys[e.key.toLowerCase()] = false; });
+    let touchX = null;
+    canvas.addEventListener("touchstart", e => { touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left; });
+    canvas.addEventListener("touchmove",  e => { touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left; });
+    canvas.addEventListener("touchend",   () => { touchX = null; });
+
+    // --- Objetos ---
+    const objects = []; // {x,y,type,width,height}
+
+    // Pesos de aparición
+    function pickType(){
+      const w = {
+        apple: 40,
+        banana: 6,
+        guava: 4,
+        orange: 8,
+        ...CFG.harmfulWeights // bone/bomb/chile según dificultad
+      };
+      const entries = Object.entries(w);
+      const total = entries.reduce((a,[,v])=>a+v,0);
+      let r = Math.random() * total;
+      for (const [type, weight] of entries){ if ((r -= weight) <= 0) return type; }
+      return "apple";
+    }
+
+    function spawnObject(){
+      const type = pickType();
+      const x = Math.random() * (canvas.width - OBJECT_SIZE) + OBJECT_SIZE/2;
+      objects.push({ x, y: -OBJECT_SIZE/2, type, width: OBJECT_SIZE, height: OBJECT_SIZE });
+    }
+
+    function showSadBunny(){
+      bunny.src = bunnySadSrc;
+      setTimeout(()=>{ bunny.src = bunnyNormalSrc; }, 550);
+    }
+
+    // Explosión DOM (GIF animado real)
+    function spawnDomExplosion(cx, cy){
+      const fx = document.createElement('img');
+      fx.src = 'Damage/explosion.gif';
+      fx.className = 'fx-explosion';
+      fx.style.left = cx + 'px';
+      fx.style.top  = cy + 'px';
+      container.appendChild(fx);
+      setTimeout(()=> fx.remove(), 750);
+    }
+
+    // --- Lógica colisiones / efectos ---
+    function onCatch(objType, objX, objY){
+      const now = performance.now();
+      let msg = "";
+      switch(objType){
+        case "apple":
+          score++; sApple.currentTime=0; sApple.play(); break;
+          msg = "+1 Point";
+        case "banana":
+          speedBoostUntil = now + 15000; sBanana.currentTime=0; sBanana.play(); break;
+           msg = "SPEED x2!";
+        case "guava":
+          lives += 2; sLife.currentTime=0; sLife.play(); break;
+          msg = "+2 Lives";
+        case "orange":
+          lives += 1; sLife.currentTime=0; sLife.play(); break;
+          msg = "+1 Life";
+
+        case "bone":
+          if (score > 0) score--; else lives--;
+          sBone.currentTime=0; sBone.play(); showSadBunny(); break;
+        case "bomb":
+          lives -= 2;
+          sBomb.currentTime=0; sBomb.play(); showSadBunny();
+          spawnDomExplosion(objX, objY);
+          msg = "-2 Lives";
+
+          break;
+        case "chile":
+          lives = 0;
+          sChile.currentTime=0; sChile.play(); showSadBunny(); break;
+      }
+    }
+
+    // --- Fondo (cielo arcade + suelo verde) ---
+    function drawBackground(){
+      // cielo azul por bandas (8-bit)
+      const bandH = 16;
+      for (let y=0; y<canvas.height - GROUND_H; y+=bandH){
+        const shade = 10 + Math.floor(20 * y / (canvas.height - GROUND_H));
+        ctx.fillStyle = `rgb(0,${80+shade},${150+shade})`;
+        ctx.fillRect(0, y, canvas.width, bandH);
+      }
+      // suelo verde
+      ctx.fillStyle = "#00cc22";
+      ctx.fillRect(0, canvas.height - GROUND_H, canvas.width, GROUND_H);
+      // “pasto” en píxeles
+      for (let x=0; x<canvas.width; x+=8){
+        ctx.fillStyle = x%16===0 ? "#22ff44" : "#11dd33";
+        ctx.fillRect(x, canvas.height - GROUND_H, 8, 6);
+      }
+    }
+
+    // AABB usando centros (consistente con drawImage centrado)
+    function isColliding(o){
+    // padding opcional para que no se cuente antes de tiempo
+  const padding = 4; 
+
+  // límites del objeto que cae (centrado en x/y)
+  const oLeft   = o.x - o.width / 2 + padding;
+  const oRight  = o.x + o.width / 2 - padding;
+  const oTop    = o.y - o.height / 2 + padding;
+  const oBottom = o.y + o.height / 2 - padding;
+
+  // límites del conejo (usando coordenadas canvas)
+  const bLeft   = bunnyX - bunnyWidth / 2 + padding;
+  const bRight  = bunnyX + bunnyWidth / 2 - padding;
+  const bTop    = bunnyY + padding;
+  const bBottom = bunnyY + bunnyHeight - padding;
+
+  return !(oRight < bLeft || oLeft > bRight || oBottom < bTop || oTop > bBottom);
+    }
+
+    // --- Update / Draw ---
+    function update(delta){
+      if (gameState !== "running") return;
+
+      const now = performance.now();
+
+     
+
+      // mover conejo
+      if (touchX !== null) {
+        bunnyX += (touchX - bunnyX) * 0.2;
+      } else {
+        if (keys["arrowleft"] || keys["a"]) bunnyX -= playerSpeed;
+        if (keys["arrowright"]|| keys["d"]) bunnyX += playerSpeed;
+      }
+      bunnyX = Math.min(Math.max(bunnyX, bunnyWidth/2), canvas.width - bunnyWidth/2);
+      bunny.style.left = `${bunnyX}px`;
+
+      // bunnyY depende del suelo (fijo)
+      bunnyY = canvas.height - GROUND_H - bunnyHeight;
+
+      // spawn periódico con timer de delta
+      spawnTimer += delta;
+      if (spawnTimer >= spawnInterval){
+        spawnObject();
+        spawnTimer %= spawnInterval;
+      }
+
+      // mover objetos + colisiones
+      for (let i = objects.length-1; i>=0; i--){
+        const o = objects[i];
+        // Si el boost de banana está activo, objetos caen 1.8x más rápido
+        const speedMultiplier = (performance.now() < speedBoostUntil) ? 1.8 : 1;
+        o.y += baseFallSpeed * speedMultiplier * (delta/16.67);
+
+        if (isColliding(o)) {
+          onCatch(o.type, o.x, o.y);
+          objects.splice(i,1);
+          continue;
+        }
+
+        // tocó el suelo (parte superior del suelo)
+        if (o.y - o.height/2 > canvas.height - GROUND_H){
+          if (o.type === "apple") { lives--; } // fallar manzana cuesta vida
+          objects.splice(i,1);
+        }
+      }
+
+      // UI
+      scoreDisplay.textContent = score;
+      livesDisplay.textContent = Math.max(lives, 0);
+
+      // tiempo
+      if (delta > 0 && Number.isFinite(delta)){
+        timeElapsed += delta / 1000;
+        timeDisplay.textContent = Math.floor(timeElapsed);
+      }
+
+      // game over
+      if (lives <= 0 && gameState === "running"){
+        triggerGameOver();
+
+      }
+
+      for(let i=notifications.length-1;i>=0;i--){
+  const n = notifications[i];
+  n.timer -= delta;
+  n.y -= 0.2*(delta/16.67); // flotan suavemente según delta
+  if(n.timer <= 0) notifications.splice(i,1);
+      }
+
+      bunnyY = canvas.height - GROUND_H - bunnyHeight;
+bunny.style.top = `${bunnyY}px`;
+    }
+
+
+  
+    function draw(){
+      drawBackground();
+      // objetos
+      for (const o of objects){
+  const image = img[o.type];
+  if (image instanceof Image && image.complete && image.naturalWidth > 0){
+    ctx.drawImage(image, o.x - OBJECT_SIZE/2, o.y - OBJECT_SIZE/2, OBJECT_SIZE, OBJECT_SIZE);
+  } else {
+    // fallback seguro
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(o.x-OBJECT_SIZE/2, o.y-OBJECT_SIZE/2, OBJECT_SIZE, OBJECT_SIZE);
+  }
+}
+
+
+      for(const n of notifications){
+  ctx.fillText(n.text, n.x, n.y);
+}
+    }
+
+    // Cuando capturas un objeto
+function onCatch(objType, objX, objY){
+  let msg = "";
+  switch(objType){
+    case "apple": score++; sApple.currentTime=0; sApple.play(); msg="+1 Point"; break;
+    case "banana": speedBoostUntil = Date.now() + 15000; sBanana.currentTime=0; sBanana.play(); msg="SPEED x2!"; break;
+    case "guava": lives+=2; sLife.currentTime=0; sLife.play(); msg="+2 Lives"; break;
+    case "orange": lives+=1; sLife.currentTime=0; sLife.play(); msg="+1 Life"; break;
+    case "bone": if(score>0)score--;else lives--; sBone.currentTime=0;sBone.play(); showSadBunny(); msg="-1 Point"; break;
+    case "bomb": lives-=2; sBomb.currentTime=0;sBomb.play(); showSadBunny(); spawnDomExplosion(objX,objY); msg="-2 Lives"; break;
+    case "chile": lives=0; sChile.currentTime=0;sChile.play(); showSadBunny(); msg="GAME OVER!"; break;
+  }
+  // Agregamos notificación con timer en ms
+  notifications.push({text: msg, x: objX, y: objY, timer: 1200});
+}
+
+    
+
+    // --- Game Over overlay con “¿Reintentar?” ---
+    function triggerGameOver(){
+      gameState = "gameover";
+      bgMusic.pause();
+      gameOverMusic.currentTime = 0;
+      gameOverMusic.play().catch(()=>{});
+
+      const ov = document.createElement('div');
+      ov.className = 'overlay';
+      ov.innerHTML = `
+        <h2>GAME OVER</h2>
+        <p>Puntaje: ${score}</p>
+        <div class="choices" style="display:none">
+          <button class="btn" id="btn-retry">Reintentar</button>
+          <button class="btn" id="btn-menu">Menú</button>
+        </div>
+      `;
+      container.appendChild(ov);
+
+      // mostrar opciones tras 1.5s
+      setTimeout(()=>{
+        ov.querySelector('.choices').style.display = 'flex';
+      }, 1500);
+
+      ov.addEventListener('click', ()=>{}); // mantiene foco (gesto para audio si hace falta)
+
+      ov.querySelector('#btn-menu').addEventListener('click', ()=>{
+        window.location.href = "SCARGAME.html";
+      });
+
+      function sendScore() {
+  fetch('/submit', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ player: playerName, score, time: Math.floor(timeElapsed) })
+})
+.then(res => {
+    if (!res.ok) throw new Error('Error enviando score');
+    return res.json();
+})
+.then(data => console.log('Score enviado:', data))
+.catch(console.error);
+
+}
+
+// Llamada
+sendScore();
+
+      ov.querySelector('#btn-retry').addEventListener('click', ()=>{
+        // reiniciar estado
+        ov.remove();
+        resetGame();
+      });
+
+    }
+
+    function resetGame(){
+      // estado
+      gameOverMusic.pause();
+      score = 0;
+      lives = 5;
+      timeElapsed = 0;
+      objects.length = 0;
+      spawnTimer = 0;
+      lastTime = null;
+      speedBoostUntil = 0;
+      playerSpeed = BASE_PLAYER_SPEED;
+      bunny.src = bunnyNormalSrc;
+      gameState = "running";
+      // música
+      bgMusic.currentTime = 0;
+      bgMusic.play().catch(()=>{});
+      // loop
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop(time){
+      if (lastTime === null){ lastTime = time; }
+      let delta = time - lastTime;
+      if (!Number.isFinite(delta) || delta < 0) delta = 0;
+      lastTime = time;
+
+      if (gameState === "running" && bgMusic.paused){ bgMusic.play().catch(()=>{}); }
+
+      update(delta);
+      draw();
+
+      if (gameState === "running"){
+        requestAnimationFrame(gameLoop);
+      }
+      // si está en gameover, dejamos de actualizar; la UI del overlay queda activa
+    }
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>

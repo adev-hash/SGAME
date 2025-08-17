@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    margin: 0;
+    font-family: 'Press Start 2P', cursive;
+    background: black;
+    color: #e7eee7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.menu-container {
+    text-align: center;
+    padding: 20px;
+    border: 3px solid #ffffff;
+    background: #111;
+    width: 90%;
+    max-width: 400px;
+}
+
+#difficulty-menu label {
+    display: block;
+    padding: 10px;
+    margin-bottom: 10px; /* separa label del select */
+}
+
+.game-title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+#start-text {
+    font-size: 0.8rem;
+    color: #f0f0f0;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+}
+
+button, select, input[type="text"] {
+    font-family: 'Press Start 2P', cursive;
+}
+
+select, input[type="text"] {
+    padding: 5px;
+    font-size: 0.8rem;
+    background: black;
+    color: #dcdcdc;
+    border: 2px solid #f1f1f1;
+    width: 80%;
+    text-align: center;
+}
+
+button {
+    padding: 10px 30px;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    border: 2px solid #dae2da;
+    background: black;
+    color: #dce2dc;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #f2f5f2;
+    color: black;
+}
+
+.hidden {
+    display: none;
+}
+
+.warning {
+    font-size: 0.6rem;
+    color: red;
+    margin-top: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+.version-text {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Press Start 2P', cursive;
+    color: #d9ddd9;
+    font-size: 12px;
+}
+
+.bunny-gif img {
+    margin-top: 15px;
+    width: 100px;
+    height: auto;
+    
+}
