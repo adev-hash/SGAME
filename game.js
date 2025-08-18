@@ -91,3 +91,37 @@ highscoresBtn.addEventListener("click", () => {
   window.location.href = "highscores.html";
 });
 
+// --- Carrusel de skins corregido ---
+const skins = ["Gifs/points.gif", "Gifs/point2.gif"]; // tus 2 skins
+let currentSkinIndex = 0;
+
+const prevSkinBtn = document.getElementById("prev-skin");
+const nextSkinBtn = document.getElementById("next-skin");
+const currentSkinImg = document.getElementById("current-skin");
+
+// Cargar skin guardada
+const savedSkinIndex = localStorage.getItem("SCARGAME_SKIN_INDEX");
+if (savedSkinIndex !== null) {
+    currentSkinIndex = parseInt(savedSkinIndex);
+    currentSkinImg.src = skins[currentSkinIndex];
+}
+
+
+function updateSkin(index) {
+    currentSkinImg.src = skins[index];
+    localStorage.setItem("SCARGAME_SKIN_INDEX", index); // guardamos índice
+    try { selectSound.currentTime = 0; selectSound.play(); } catch(e){}
+}
+
+// Botones
+prevSkinBtn.addEventListener("click", () => {
+    currentSkinIndex = (currentSkinIndex - 1 + skins.length) % skins.length;
+    updateSkin(currentSkinIndex);
+});
+
+nextSkinBtn.addEventListener("click", () => {
+    currentSkinIndex = (currentSkinIndex + 1) % skins.length;
+    updateSkin(currentSkinIndex);
+});
+
+
