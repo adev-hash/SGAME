@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="scar.ico" />
     <title>SCARGAME</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="scar.ico" />
 </head>
 <body>
     <div class="menu-container">
@@ -22,6 +22,13 @@
                 <option value="medium">MEDIUM</option>
                 <option value="hard">HARD</option>
             </select>
+
+            <div class="skin-selector">
+               <button id="prev-skin">&#9664;</button>
+              <img id="current-skin" src="Gifs/points.gif" alt="Skin del jugador">
+              <button id="next-skin">&#9654;</button>
+             </div>
+
             <!-- Nombre del jugador -->
             
             <div class="player-name-container">
@@ -30,15 +37,10 @@
                  <p id="name-warning" class="warning hidden">⚠ Debes ingresar tu nombre</p>
             </div>
 
-            <!-- GIF del conejo -->
-            <div class="bunny-gif">
-                <img src="Gifs/points.gif" alt="Conejito">
-            </div>
-
             <button id="play-btn">PLAY</button>
             <button id="highscores-btn">HIGH SCORES</button>
 
-            <div class="version-text">© Version 1.0</div>
+            <div class="version-text">© Version 1.2</div>
         </div>
 
     </div>
