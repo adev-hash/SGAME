@@ -146,9 +146,6 @@
     const sChile  = document.getElementById("sound-chile");
     const notifications = []; // {text, x, y, timer}
 
-
-
-
     function startMusic() {
       bgMusic.volume = 0.35;
       bgMusic.play().catch(()=>{});
@@ -162,7 +159,7 @@
     const DIFF_CFG = {
       easy:   { fallSpeed: 2.2, spawnMs: 1200, harmfulWeights: {bone: 22, bomb: 0,  chile: 0} },
       medium: { fallSpeed: 3.6, spawnMs: 950,  harmfulWeights: {bone: 26, bomb: 8,  chile: 0} },
-      hard:   { fallSpeed: 5.2, spawnMs: 800,  harmfulWeights: {bone: 28, bomb: 10, chile: 6} }
+      hard:   { fallSpeed: 5.2, spawnMs: 800,  harmfulWeights: {bone: 28, bomb: 10, chile: 20} }
     };
     const CFG = DIFF_CFG[difficulty] || DIFF_CFG.easy;
 
@@ -179,8 +176,24 @@
     const bunnyWidth = 80, bunnyHeight = 80;
     let bunnyX = canvas.width / 2;
     let bunnyY = canvas.height - GROUND_H - bunnyHeight; // top del conejo en coords canvas
-    const bunnyNormalSrc = "Gifs/Scar.gif";
-    const bunnySadSrc = "Gifs/sad.gif";
+    
+
+    // --- Selección de skin del conejo ---
+const savedSkinIndex = parseInt(localStorage.getItem("SCARGAME_SKIN_INDEX")) || 0;
+const bunnySkins = [
+  "Gifs/Scar.gif",     // Skin 0 (por defecto)
+  "Gifs/Funny.gif"     // Skin 1 (segunda skin)
+];
+
+bunny.src = bunnySkins[savedSkinIndex];
+const bunnyNormalSrc = bunnySkins[savedSkinIndex]; // para usar en showSadBunny
+const bunnySadSrc = "Gifs/funisad.gif"; // sigue igual
+
+function showSadBunny(){
+  bunny.src = bunnySadSrc;
+  setTimeout(()=>{ bunny.src = bunnyNormalSrc; }, 550);
+}
+
 
     const BASE_PLAYER_SPEED = 5;
     let playerSpeed = BASE_PLAYER_SPEED;
@@ -211,6 +224,7 @@
     canvas.addEventListener("touchstart", e => { touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left; });
     canvas.addEventListener("touchmove",  e => { touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left; });
     canvas.addEventListener("touchend",   () => { touchX = null; });
+
 
     // --- Objetos ---
     const objects = []; // {x,y,type,width,height}
@@ -275,10 +289,10 @@
           if (score > 0) score--; else lives--;
           sBone.currentTime=0; sBone.play(); showSadBunny(); break;
         case "bomb":
-          lives -= 2;
+          lives -= 5;
           sBomb.currentTime=0; sBomb.play(); showSadBunny();
           spawnDomExplosion(objX, objY);
-          msg = "-2 Lives";
+          msg = "-5 Lives";
 
           break;
         case "chile":
@@ -305,6 +319,8 @@
         ctx.fillRect(x, canvas.height - GROUND_H, 8, 6);
       }
     }
+  
+    
 
     // AABB usando centros (consistente con drawImage centrado)
     function isColliding(o){
@@ -432,12 +448,13 @@ function onCatch(objType, objX, objY){
     case "guava": lives+=2; sLife.currentTime=0; sLife.play(); msg="+2 Lives"; break;
     case "orange": lives+=1; sLife.currentTime=0; sLife.play(); msg="+1 Life"; break;
     case "bone": if(score>0)score--;else lives--; sBone.currentTime=0;sBone.play(); showSadBunny(); msg="-1 Point"; break;
-    case "bomb": lives-=2; sBomb.currentTime=0;sBomb.play(); showSadBunny(); spawnDomExplosion(objX,objY); msg="-2 Lives"; break;
+    case "bomb": lives-=5; sBomb.currentTime=0;sBomb.play(); showSadBunny(); spawnDomExplosion(objX,objY); msg="-5 Lives"; break;
     case "chile": lives=0; sChile.currentTime=0;sChile.play(); showSadBunny(); msg="GAME OVER!"; break;
   }
   // Agregamos notificación con timer en ms
   notifications.push({text: msg, x: objX, y: objY, timer: 1200});
 }
+
 
     
 
@@ -538,3 +555,4 @@ sendScore();
   </script>
 </body>
 </html>
+
