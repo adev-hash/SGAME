@@ -101,3 +101,31 @@ button:hover {
     height: auto;
     
 }
+
+.skin-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 15px;
+}
+
+.skin-selector button {
+    font-size: 1rem;
+    padding: 5px 10px;
+    background: black;
+    color: #dce2dc;
+    border: 2px solid #dae2da;
+    cursor: pointer;
+}
+
+.skin-selector button:hover {
+    background: #f2f5f2;
+    color: black;
+}
+
+#current-skin {
+    width: 80px;
+    height: auto;
+    border: 2px solid #dae2da;
+}
