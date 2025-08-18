@@ -178,21 +178,26 @@
     let bunnyY = canvas.height - GROUND_H - bunnyHeight; // top del conejo en coords canvas
     
 
-    // --- Selección de skin del conejo ---
-const savedSkinIndex = parseInt(localStorage.getItem("SCARGAME_SKIN_INDEX")) || 0;
-const bunnySkins = [
-  "Gifs/Scar.gif",     // Skin 0 (por defecto)
-  "Gifs/Funny.gif"     // Skin 1 (segunda skin)
+   const bunnySkinsData = [
+  { normal: "Gifs/Scar.gif", sad: "Gifs/sad.gif" },      // Skin 0
+  { normal: "Gifs/Funny.gif", sad: "Gifs/funisad.gif" } // Skin 1
 ];
 
-bunny.src = bunnySkins[savedSkinIndex];
-const bunnyNormalSrc = bunnySkins[savedSkinIndex]; // para usar en showSadBunny
-const bunnySadSrc = "Gifs/funisad.gif"; // sigue igual
+// skin actual
+const savedSkinIndex = parseInt(localStorage.getItem("SCARGAME_SKIN_INDEX")) || 0;
+const bunnyNormalSrc = bunnySkinsData[savedSkinIndex].normal;
+const bunnySadSrc = bunnySkinsData[savedSkinIndex].sad;
+
+bunny.src = bunnyNormalSrc; // inicial
 
 function showSadBunny(){
-  bunny.src = bunnySadSrc;
-  setTimeout(()=>{ bunny.src = bunnyNormalSrc; }, 550);
+  const skin = bunnySkinsData[savedSkinIndex];
+  bunny.src = skin.sad;        // GIF de daño correcto
+  setTimeout(()=>{ 
+    bunny.src = skin.normal;   // vuelve a normal
+  }, 550);
 }
+
 
 
     const BASE_PLAYER_SPEED = 5;
@@ -249,11 +254,6 @@ function showSadBunny(){
       const type = pickType();
       const x = Math.random() * (canvas.width - OBJECT_SIZE) + OBJECT_SIZE/2;
       objects.push({ x, y: -OBJECT_SIZE/2, type, width: OBJECT_SIZE, height: OBJECT_SIZE });
-    }
-
-    function showSadBunny(){
-      bunny.src = bunnySadSrc;
-      setTimeout(()=>{ bunny.src = bunnyNormalSrc; }, 550);
     }
 
     // Explosión DOM (GIF animado real)
@@ -555,4 +555,3 @@ sendScore();
   </script>
 </body>
 </html>
-
