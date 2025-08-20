@@ -18,6 +18,7 @@ body {
     background: #111;
     width: 90%;
     max-width: 400px;
+    animation: parpadeoBorde 0.02s infinite alternate;
 }
 
 #difficulty-menu label {
@@ -29,7 +30,10 @@ body {
 .game-title {
     font-size: 1.5rem;
     margin-bottom: 15px;
+    
 }
+
+
 
 #start-text {
     font-size: 0.8rem;
@@ -44,6 +48,7 @@ body {
 
 button, select, input[type="text"] {
     font-family: 'Press Start 2P', cursive;
+    animation: parpadeoBorde 0.02s infinite alternate;
 }
 
 select, input[type="text"] {
@@ -54,6 +59,7 @@ select, input[type="text"] {
     border: 2px solid #f1f1f1;
     width: 80%;
     text-align: center;
+    animation: parpadeoBorde 0.02s infinite alternate;
 }
 
 button {
@@ -64,6 +70,7 @@ button {
     background: black;
     color: #dce2dc;
     cursor: pointer;
+    animation: parpadeoBorde 0.02s infinite alternate;
 }
 
 button:hover {
@@ -102,6 +109,24 @@ button:hover {
     
 }
 
+#current-skin {
+  border: 4px solid white;
+  padding: 2px;
+  border-color: white;
+  animation: parpadeoBorde 0.02s infinite alternate;
+}
+
+@keyframes parpadeoBorde {
+  0% {
+    box-shadow: 0 0 15px 5px white;
+    border-color: white;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    border-color: transparent;
+  }
+}
+
 .skin-selector {
     display: flex;
     align-items: center;
@@ -117,6 +142,7 @@ button:hover {
     color: #dce2dc;
     border: 2px solid #dae2da;
     cursor: pointer;
+    animation: parpadeoBorde 0.02s infinite alternate;
 }
 
 .skin-selector button:hover {
@@ -128,4 +154,5 @@ button:hover {
     width: 80px;
     height: auto;
     border: 2px solid #dae2da;
+    animation: parpadeoBorde 0.02s infinite alternate;
 }
