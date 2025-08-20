@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/x-icon" href="scar.ico" />
   <title>ScarGAME Highscores</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="scar.ico" />
   <style>
     body {
       margin: 0;
@@ -31,6 +31,7 @@
       width: 100%;
       max-width: 500px;
       font-size: 0.7rem;
+      animation: parpadeoBorde 0.02s infinite alternate;
     }
 
     th, td {
@@ -63,6 +64,7 @@
       cursor: pointer;
       border-radius: 6px;
       transition: 0.2s;
+      animation: parpadeoBorde 0.02s infinite alternate;
     }
 
     button:hover {
@@ -92,7 +94,19 @@
         font-size: 0.6rem;
         padding: 8px 16px;
       }
+
     }
+
+    @keyframes parpadeoBorde {
+  0% {
+    box-shadow: 0 0 15px 5px white;
+    border-color: white;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    border-color: transparent;
+  }
+}
   </style>
 </head>
 <body>
