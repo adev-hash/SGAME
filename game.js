@@ -92,7 +92,7 @@ highscoresBtn.addEventListener("click", () => {
 });
 
 // --- Carrusel de skins corregido ---
-const skins = ["Gifs/points.gif", "Gifs/point2.gif"]; // tus 2 skins
+const skins = ["Gifs/points.gif", "Gifs/point2.gif", "Gifs/points3.gif"]; // tus 2 skins
 let currentSkinIndex = 0;
 
 const prevSkinBtn = document.getElementById("prev-skin");
