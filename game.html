@@ -232,7 +232,6 @@ function showSadBunny(){
     loadImg("orange", "Fruits/orange.png");
     loadImg("bomb", "Damage/bomba.png");          // bomba caída = PNG
     loadImg("chile", "Fruits/chile.png");
-    loadImg("question", "Gifs/happy.png"); // tu imagen de signo de interrogación
 
 
     // --- Controles ---
@@ -426,17 +425,10 @@ function showSadBunny(){
   if(n.timer <= 0) notifications.splice(i,1);
       }
 
-      bunnyY = canvas.height - GROUND_H - bunnyHeight;
-bunny.style.top = `${bunnyY}px`;
-
-if(savedSkinIndex === 2){ // solo Blaze
-  // spawn aleatorio muy bajo, ajusta 0.002 para que no caigan demasiado seguido
-  if(Math.random() < 0.002){
-    const x = Math.random() * (canvas.width - OBJECT_SIZE) + OBJECT_SIZE/2;
-    objects.push({ x, y: -OBJECT_SIZE/2, type: "question", width: OBJECT_SIZE, height: OBJECT_SIZE });
-  }
-}
+    bunnyY = canvas.height - GROUND_H - bunnyHeight;
+    bunny.style.top = `${bunnyY}px`;
     }
+
 
 
   
@@ -474,10 +466,6 @@ function onCatch(objType, objX, objY){
     case "question":
   // Guardar la skin actual
   const originalSrc = bunny.src;
-  bunny.src = "Gifs/blazeM.gif"; // skin temporal
-  setTimeout(() => { bunny.src = originalSrc; }, 10000); // volver a la original después de 10s
-  sBanana.currentTime = 0; sBanana.play(); // sonido de efecto
-  msg = "BLAZE MAID!";
   break;
   }
   // Agregamos notificación con timer en ms
